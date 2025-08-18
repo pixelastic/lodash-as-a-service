@@ -1,4 +1,4 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
 // Extend Lodash with our custom methods using official mixin API
 _.mixin({
@@ -8,4 +8,4 @@ _.mixin({
 });
 
 // Export the extended Lodash instance
-module.exports = _;
+export default _;

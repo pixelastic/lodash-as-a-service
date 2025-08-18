@@ -1,8 +1,14 @@
-const express = require('express');
-const _ = require('./lodash.js');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
+import express from 'express';
+import _ from './lodash.js';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,9 +32,6 @@ app.get('/health', (req, res) => {
 
 // Root endpoint with documentation
 app.get('/', (req, res) => {
-  const fs = require('fs');
-  const path = require('path');
-
   const usagePath = path.join(__dirname, 'USAGE.md');
   const usageContent = fs.readFileSync(usagePath, 'utf8');
 

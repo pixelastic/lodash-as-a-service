@@ -1,6 +1,7 @@
 {
   "name": "lodash-as-a-service",
   "private": true,
+  "type": "module",
   "description": "Use lodash with a simple GET API",
   "author": "pixelastic",
   "repository": "pixelastic/lodash-as-a-service",
