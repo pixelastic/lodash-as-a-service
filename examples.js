@@ -1,95 +1,89 @@
-// Examples of using Lodash as a Service
+// Examples of using Lodash as a Service with new URL structure
 
-const API_URL = 'http://localhost:3000/api/transform';
+const BASE_URL = 'http://localhost:3000';
 
 // Example 1: Simple camelCase transformation (GET)
 async function example1() {
-  const url = `${API_URL}?input=hello_world&chain=camelCase`;
+  const url = `${BASE_URL}/camelCase?input=hello_world`;
   const response = await fetch(url);
   const data = await response.json();
-  console.log('Example 1:', data);
+  console.log('Example 1 - Simple camelCase:', data);
   // Result: { success: true, input: 'hello_world', chain: ['camelCase'], result: 'helloWorld' }
 }
 
-// Example 2: Chain multiple transformations (POST)
+// Example 2: Chain multiple transformations (GET)
 async function example2() {
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      input: '  hello WORLD  ',
-      chain: ['trim', 'toLower', 'camelCase', 'upperFirst']
-    })
-  });
+  const url = `${BASE_URL}/trim/toLower/camelCase/upperFirst?input=  HELLO_WORLD  `;
+  const response = await fetch(url);
   const data = await response.json();
-  console.log('Example 2:', data);
+  console.log('Example 2 - Chain transformations:', data);
   // Result: { success: true, ..., result: 'HelloWorld' }
 }
 
-// Example 3: Array operations
+// Example 3: Array operations (GET)
 async function example3() {
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      input: [1, 2, null, 3, '', 4, undefined, 5],
-      chain: ['compact']
-    })
-  });
+  const input = encodeURIComponent('[1,2,null,3,"",4,undefined,5]');
+  const url = `${BASE_URL}/compact?input=${input}`;
+  const response = await fetch(url);
   const data = await response.json();
-  console.log('Example 3:', data);
+  console.log('Example 3 - Array compact:', data);
   // Result: { success: true, ..., result: [1, 2, 3, 4, 5] }
 }
 
-// Example 4: Object operations with arguments
+// Example 4: String cleaning chain (GET)
 async function example4() {
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      input: { name: 'John', age: 30, email: 'john@example.com', password: 'secret' },
-      chain: [
-        { method: 'pick', args: ['name', 'email'] }
-      ]
-    })
-  });
-  const data = await response.json();
-  console.log('Example 4:', data);
-  // Result: { success: true, ..., result: { name: 'John', email: 'john@example.com' } }
-}
-
-// Example 5: Using colon syntax for arguments in GET
-async function example5() {
-  const url = `${API_URL}?input=hello%20world%20test&chain=split:%20,join:-`;
+  const input = encodeURIComponent('  Hello World  ');
+  const url = `${BASE_URL}/trim/kebabCase/toUpper?input=${input}`;
   const response = await fetch(url);
   const data = await response.json();
-  console.log('Example 5:', data);
-  // Result: { success: true, ..., result: 'hello-world-test' }
+  console.log('Example 4 - String cleaning:', data);
+  // Result: { success: true, ..., result: 'HELLO-WORLD' }
 }
 
-// Example 6: Complex chain for no-code scenarios
-async function example6() {
-  const response = await fetch(API_URL, {
+// Example 5: POST with arguments - replace method
+async function example5() {
+  const response = await fetch(`${BASE_URL}/replace/toUpper`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      input: ['user_name', 'user_email', 'user_phone'],
-      chain: [
-        { method: 'join', args: [','] },
-        { method: 'replace', args: ['user_', ''] },
-        { method: 'split', args: [','] }
-      ]
+      input: 'hello world',
+      args: [[' ', '-'], []]  // First arg for replace, empty arg for toUpper
     })
   });
   const data = await response.json();
-  console.log('Example 6:', data);
-  // Result: { success: true, ..., result: ['name', 'email', 'phone'] }
+  console.log('Example 5 - POST with args:', data);
+  // Result: { success: true, ..., result: 'HELLO-WORLD' }
+}
+
+// Example 6: POST with multiple args - padStart and truncate
+async function example6() {
+  const response = await fetch(`${BASE_URL}/padStart/truncate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      input: 'hello',
+      args: [[10, '0'], [7]]  // padStart with 10 chars and '0', then truncate to 7
+    })
+  });
+  const data = await response.json();
+  console.log('Example 6 - Complex POST:', data);
+  // Result: { success: true, ..., result: '0000hel' }
+}
+
+// Example 7: Unique values from array (GET)
+async function example7() {
+  const input = encodeURIComponent('[1,1,2,3,3,4,4,5]');
+  const url = `${BASE_URL}/uniq?input=${input}`;
+  const response = await fetch(url);
+  const data = await response.json();
+  console.log('Example 7 - Unique values:', data);
+  // Result: { success: true, ..., result: [1,2,3,4,5] }
 }
 
 // Run examples
 if (require.main === module) {
   (async () => {
-    console.log('Running Lodash as a Service examples...\n');
+    console.log('Running Lodash as a Service examples with new URL structure...\n');
     
     try {
       await example1();
@@ -98,6 +92,7 @@ if (require.main === module) {
       await example4();
       await example5();
       await example6();
+      await example7();
     } catch (error) {
       console.error('Error running examples:', error.message);
       console.log('Make sure the server is running: node server.js');

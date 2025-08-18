@@ -177,57 +177,95 @@ function applyChain(input, chain) {
   return result;
 }
 
-// Main transformation endpoint
-app.all('/api/transform', async (req, res) => {
+// Parse methods from URL path
+function parseMethodsFromPath(path) {
+  return path.replace(/^\//, '').split('/').filter(m => m);
+}
+
+// Transformation middleware
+function transformMiddleware(req, res, next) {
+  // Skip for root and health endpoints
+  if (req.path === '/' || req.path === '/health') {
+    return next();
+  }
+  
   try {
-    let input, chain;
+    let input;
+    let methodsFromUrl = parseMethodsFromPath(req.path);
     
-    // Handle both GET and POST
+    // If no methods in URL, skip to next handler
+    if (methodsFromUrl.length === 0) {
+      return next();
+    }
+    
+    // Handle GET requests - simple transformations
     if (req.method === 'GET') {
       input = req.query.input;
-      chain = req.query.chain;
       
-      // Parse chain from query string
-      if (typeof chain === 'string') {
-        chain = chain.split(',').map(m => m.trim());
+      if (input === undefined) {
+        return res.status(400).json({
+          error: 'Missing required query parameter: input',
+          example: `${req.path}?input=hello_world`
+        });
       }
+      
+      // Parse input if it's JSON
+      try {
+        if (typeof input === 'string' && (input.startsWith('{') || input.startsWith('['))) {
+          input = JSON.parse(input);
+        }
+      } catch {
+        // Keep as string if not valid JSON
+      }
+      
+      // Simple chain without arguments
+      const chain = methodsFromUrl.map(m => m);
+      const validatedChain = validateChain(chain);
+      const result = applyChain(input, validatedChain);
+      
+      res.json({
+        success: true,
+        input: input,
+        chain: validatedChain,
+        result: result
+      });
+      
+    } 
+    // Handle POST requests - complex transformations with arguments
+    else if (req.method === 'POST') {
+      const { input: bodyInput, args = [] } = req.body;
+      input = bodyInput;
+      
+      if (input === undefined) {
+        return res.status(400).json({
+          error: 'Missing required field: input',
+          example: {
+            input: 'hello world',
+            args: [['_', '-']]  // For replace method
+          }
+        });
+      }
+      
+      // Create chain with arguments
+      const chain = methodsFromUrl.map((method, index) => {
+        if (args[index]) {
+          return { method, args: args[index] };
+        }
+        return method;
+      });
+      
+      const validatedChain = validateChain(chain);
+      const result = applyChain(input, validatedChain);
+      
+      res.json({
+        success: true,
+        input: input,
+        chain: validatedChain,
+        result: result
+      });
     } else {
-      input = req.body.input;
-      chain = req.body.chain;
+      next();
     }
-    
-    // Validate input
-    if (input === undefined) {
-      return res.status(400).json({
-        error: 'Missing required parameter: input'
-      });
-    }
-    
-    if (!chain || (Array.isArray(chain) && chain.length === 0)) {
-      return res.status(400).json({
-        error: 'Missing required parameter: chain'
-      });
-    }
-    
-    // Parse input if it's JSON
-    try {
-      if (typeof input === 'string' && (input.startsWith('{') || input.startsWith('['))) {
-        input = JSON.parse(input);
-      }
-    } catch {
-      // Keep as string if not valid JSON
-    }
-    
-    // Validate and apply chain
-    const validatedChain = validateChain(chain);
-    const result = applyChain(input, validatedChain);
-    
-    res.json({
-      success: true,
-      input: input,
-      chain: validatedChain,
-      result: result
-    });
     
   } catch (error) {
     res.status(400).json({
@@ -235,7 +273,10 @@ app.all('/api/transform', async (req, res) => {
       error: error.message
     });
   }
-});
+}
+
+// Apply transformation middleware to all routes
+app.use(transformMiddleware);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -247,26 +288,67 @@ app.get('/', (req, res) => {
   res.json({
     name: 'Lodash as a Service',
     version: '1.0.0',
-    endpoints: {
-      '/api/transform': {
-        methods: ['GET', 'POST'],
-        description: 'Transform input using Lodash chain methods',
-        examples: {
-          GET: '/api/transform?input=hello_world&chain=camelCase',
-          POST: {
-            body: {
-              input: '  hello world  ',
-              chain: ['trim', 'camelCase', 'upperFirst']
-            }
-          }
-        }
+    description: 'Transform data using Lodash methods via simple URLs',
+    why: 'Perfect for no-code scenarios where you need simple data transformations without writing code',
+    
+    usage: {
+      simple: {
+        description: 'Chain methods directly in the URL path',
+        example: 'GET /trim/camelCase?input=  hello_world  ',
+        result: 'helloWorld'
       },
-      '/health': {
-        methods: ['GET'],
-        description: 'Health check endpoint'
+      complex: {
+        description: 'Use POST for methods requiring arguments',
+        example: {
+          request: 'POST /replace/toUpper',
+          body: {
+            input: 'hello world',
+            args: [[' ', '-'], []]
+          },
+          result: 'HELLO-WORLD'
+        }
       }
     },
-    allowedMethods: Array.from(ALLOWED_METHODS).sort()
+    
+    examples: [
+      {
+        description: 'Convert to camelCase',
+        url: '/camelCase?input=hello_world',
+        result: 'helloWorld'
+      },
+      {
+        description: 'Chain multiple transformations',
+        url: '/trim/toLower/camelCase/upperFirst?input=  HELLO_WORLD  ',
+        result: 'HelloWorld'
+      },
+      {
+        description: 'Clean array',
+        url: '/compact?input=[1,null,2,"",3,false,4]',
+        result: '[1,2,3,4]'
+      },
+      {
+        description: 'Extract unique values',
+        url: '/uniq?input=[1,1,2,3,3,4]',
+        result: '[1,2,3,4]'
+      }
+    ],
+    
+    httpie_examples: {
+      GET: "http GET localhost:3000/trim/camelCase input=='  hello_world  '",
+      POST_with_jo: "jo input='hello world' args=$(jo -a $(jo -a ' ' '-')) | http POST localhost:3000/replace/toUpper"
+    },
+    
+    curl_examples: {
+      GET: "curl 'localhost:3000/trim/camelCase?input=  hello_world  '",
+      POST: "curl -X POST localhost:3000/replace -H 'Content-Type: application/json' -d '{\"input\":\"hello world\",\"args\":[[\" \",\"-\"]]}'"
+    },
+    
+    allowedMethods: Array.from(ALLOWED_METHODS).sort(),
+    
+    endpoints: {
+      '/[method1]/[method2]/...': 'Chain Lodash methods via URL path',
+      '/health': 'Health check endpoint'
+    }
   });
 });
 
