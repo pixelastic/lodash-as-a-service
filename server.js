@@ -1,5 +1,5 @@
 const express = require('express');
-const _ = require('./lodash-extensions');
+const _ = require('./lodash.js');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
