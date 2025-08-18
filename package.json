@@ -15,8 +15,7 @@
     "lodash": "4.17.21"
   },
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
-    "test": "node examples.js"
+    "serve": "./scripts/serve.sh",
+    "test": "./scripts/test.sh"
   }
 }
