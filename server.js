@@ -30,17 +30,24 @@ app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
-// Root endpoint with documentation
-app.get('/', (req, res) => {
+// Documentation handler - serves USAGE.md as plain text on / and any POST
+// request
+function serveDocumentation(req, res) {
   const usagePath = path.join(__dirname, 'USAGE.md');
   const usageContent = fs.readFileSync(usagePath, 'utf8');
 
   // Set content type to plain text
   res.type('text/plain');
   res.send(usageContent);
+}
+app.use((req, res, next) => {
+  if (req.method == 'POST' || req.path == '/') {
+    return serveDocumentation(req, res, next);
+  }
+  next();
 });
 
-// Whitelist of allowed Lodash methods (chain-safe methods only)
+// Whitelist of allowed Lodash methods
 const ALLOWED_METHODS = [
   // String methods
   'camelCase', 'capitalize', 'deburr', 'endsWith', 'escape', 'escapeRegExp',
@@ -60,170 +67,29 @@ const ALLOWED_METHODS = [
   'stubString', 'stubTrue', 'times', 'toPath', 'uniqueId'
 ];
 
-// Apply transformation middleware to all routes
-app.use(transformMiddleware);
+// Apply main transformation handler to all routes
+app.use(mainTransformationHandler);
 
-// Validate chain methods using Lodash
-function validateChain(chain) {
-  if (!_.isArray(chain)) {
-    chain = [chain];
-  }
-
-  _.forEach(chain, (method) => {
-    // Parse method name and arguments using Lodash
-    let methodName = method;
-    let args = [];
-
-    if (_.isObject(method) && _.has(method, 'method')) {
-      methodName = _.get(method, 'method');
-      args = _.get(method, 'args', []);
-    } else if (_.isString(method)) {
-      // Check if method has arguments like "pick:name,age"
-      const parts = _.split(method, ':');
-      methodName = _.head(parts);
-      if (_.size(parts) > 1) {
-        args = _.map(_.split(_.last(parts), ','), arg => {
-          // Try to parse as JSON, otherwise keep as string
-          try {
-            return JSON.parse(arg);
-          } catch {
-            const trimmed = _.trim(arg);
-            // Only convert to number if it looks like a pure number
-            if (/^\d+(\.\d+)?$/.test(trimmed)) {
-              return Number(trimmed);
-            }
-            return trimmed;
-          }
-        });
-      }
-    }
-
-    if (!_.includes(ALLOWED_METHODS, methodName)) {
-      throw new Error(`Method '${methodName}' is not allowed`);
-    }
-  });
-
-  return chain;
-}
-
-// Apply chain of Lodash methods using Lodash for processing
-function applyChain(input, chain) {
-  let result = input;
-
-  _.forEach(chain, (method) => {
-    let methodName = method;
-    let args = [];
-
-    if (_.isObject(method) && _.has(method, 'method')) {
-      methodName = _.get(method, 'method');
-      args = _.get(method, 'args', []);
-    } else if (_.isString(method)) {
-      const parts = _.split(method, ':');
-      methodName = _.head(parts);
-      if (_.size(parts) > 1) {
-        args = _.map(_.split(_.last(parts), ','), arg => {
-          try {
-            return JSON.parse(arg);
-          } catch {
-            const trimmed = _.trim(arg);
-            // Only convert to number if it looks like a pure number
-            if (/^\d+(\.\d+)?$/.test(trimmed)) {
-              return Number(trimmed);
-            }
-            return trimmed;
-          }
-        });
-      }
-    }
-
-    if (!_.has(_, methodName)) {
-      throw new Error(`Method '${methodName}' does not exist in Lodash`);
-    }
-
-    // Apply the method with timeout using Lodash
-    const startTime = _.now();
-    result = _[methodName](result, ...args);
-
-    // Timeout after 1 second per operation
-    if (_.now() - startTime > 1000) {
-      throw new Error('Operation timed out');
-    }
-  });
-
-  return result;
-}
-
-// Parse input and methods from URL path using Lodash
-// New syntax: /{input}/{method1:arg1:arg2}/{method2}/...
-function parseInputAndMethods(path) {
-  const pathWithoutLeadingSlash = _.trimStart(path, '/');
-  const segments = _.compact(_.split(pathWithoutLeadingSlash, '/'));
-
-  if (_.isEmpty(segments)) {
-    return { input: null, methods: [] };
-  }
-
-  // First segment is the input (URL-encoded)
-  const input = decodeURIComponent(segments[0]);
-
-  // Remaining segments are methods with optional arguments
-  const methodSegments = _.slice(segments, 1);
-
-  const methods = _.map(methodSegments, (segment) => {
-    const parts = _.split(segment, ':');
-    const methodName = _.head(parts);
-    const args = _.slice(parts, 1);
-
-    if (_.isEmpty(args)) {
-      return methodName;
-    } else {
-      // URL-decode arguments and try to convert numbers
-      const decodedArgs = _.map(args, arg => {
-        const decoded = decodeURIComponent(arg);
-        // Only convert to number if it looks like a pure number
-        if (/^\d+(\.\d+)?$/.test(decoded.trim())) {
-          return Number(decoded.trim());
-        }
-        return decoded;
-      });
-      return { method: methodName, args: decodedArgs };
-    }
-  });
-
-  return { input, methods };
-}
-
-// Transformation middleware using new URL syntax
-// Syntax: /{input}/{method1:arg1:arg2}/{method2}/...
-function transformMiddleware(req, res, next) {
-  // Skip for root and health endpoints using Lodash
-  const skipPaths = ['/', '/health'];
-  if (_.includes(skipPaths, req.path)) {
-    return next();
-  }
-
-  // Only handle GET requests with new URL syntax
-  if (!_.isEqual(req.method, 'GET')) {
-    return next();
-  }
-
+// Main transformation handler - parses URLs, validates methods, and applies transformations
+// Entry point for all Lodash transformations via URL syntax: /{input}/{method1:arg1:arg2}/{method2}/...
+function mainTransformationHandler(req, res, next) {
   try {
-    const { input, methods } = parseInputAndMethods(req.path);
+    const { input, methods } = parseAndValidateRequest(req.path);
 
-    // If no input or methods, skip to next handler
+    // If no input or methods, return documentation
     if (_.isNull(input) || _.isEmpty(methods)) {
-      return next();
+      return serveDocumentation(req, res);
     }
 
-    // Validate and apply the method chain
-    const validatedChain = validateChain(methods);
-    const result = applyChain(input, validatedChain);
+    // Apply the validated method chain
+    let result = input;
+    _.forEach(methods, (method) => {
+      const { name, args } = method;
+      result = _[name](result, ...args);
+    });
 
     res.json({
-      success: true,
-      input: input,
-      chain: validatedChain,
-      result: result
+      result
     });
 
   } catch (error) {
@@ -236,6 +102,45 @@ function transformMiddleware(req, res, next) {
   }
 }
 
+// Parse and validate URL request - returns validated input and methods or throws error
+// Syntax: /{input}/{method1:arg1:arg2}/{method2}/...
+function parseAndValidateRequest(path) {
+  const segments = _.chain(path)
+    .trimStart('/')
+    .split('/')
+    .compact()
+    .value();
+
+  if (_.isEmpty(segments)) {
+    return { input: null, methods: [] };
+  }
+
+  // First segment is the input (URL-encoded)
+  const input = decodeURIComponent(segments[0]);
+
+  // Remaining segments are methods with optional arguments
+  const methods = _.chain(segments).slice(1).map(
+    (segment) => {
+      const parts = _.split(segment, ':');
+
+      // Method name
+      const name = _.head(parts);
+      if (!_.includes(ALLOWED_METHODS, name)) {
+        throw new Error(`Method '${name}' is not allowed`);
+      }
+
+      // Args
+      const args = _.chain(parts)
+        .slice(1)
+        .map(decodeURIComponent)
+        .value();
+
+      return { name, args: args };
+    }
+  ).value()
+
+  return { input, methods };
+}
 
 // Start server
 app.listen(PORT, () => {

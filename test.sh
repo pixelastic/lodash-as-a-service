@@ -29,6 +29,7 @@ test_endpoint() {
     ((PASSED++))
   else
     echo -e "${RED}✗ FAIL${NC}"
+    echo "  URL:       $BASE_URL$url"
     echo "  Expected: '$expected'"
     echo "  Got:      '$actual'"
     ((FAILED++))
