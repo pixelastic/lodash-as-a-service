@@ -5,7 +5,10 @@ RUN apk add --no-cache \
       bash=5.2.37-r0 \
       nodejs=22.16.0-r2 \
       npm=11.3.0-r0
-      # yarn=1.22.22-r1
+
+# Install corepack, so we can pick a specific yarn version
+RUN npm install -g corepack
+RUN corepack enable
 
 # Workdir
 RUN mkdir -p /app
@@ -15,7 +18,6 @@ WORKDIR /app
 COPY .yarnrc.yml /app/
 COPY package.json /app/
 COPY yarn.lock /app/
-RUN corepack enable
 RUN yarn install
 
 # Scripts
