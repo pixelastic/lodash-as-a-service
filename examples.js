@@ -1,89 +1,75 @@
-// Examples of using Lodash as a Service with new URL structure
+// Examples of using Lodash as a Service with new URL syntax
+// Syntax: /{input}/{method1:arg1:arg2}/{method2}/...
 
 const BASE_URL = 'http://localhost:3000';
 
-// Example 1: Simple camelCase transformation (GET)
+// Example 1: Simple camelCase transformation
 async function example1() {
-  const url = `${BASE_URL}/camelCase?input=hello_world`;
+  const url = `${BASE_URL}/hello_world/camelCase`;
   const response = await fetch(url);
   const data = await response.json();
   console.log('Example 1 - Simple camelCase:', data);
-  // Result: { success: true, input: 'hello_world', chain: ['camelCase'], result: 'helloWorld' }
+  // Result: { success: true, input: 'hello_world', result: 'helloWorld' }
 }
 
-// Example 2: Chain multiple transformations (GET)
+// Example 2: Chain multiple transformations
 async function example2() {
-  const url = `${BASE_URL}/trim/toLower/camelCase/upperFirst?input=  HELLO_WORLD  `;
+  const url = `${BASE_URL}/user_first_name/replace:_:%20/camelCase`;
   const response = await fetch(url);
   const data = await response.json();
-  console.log('Example 2 - Chain transformations:', data);
-  // Result: { success: true, ..., result: 'HelloWorld' }
+  console.log('Example 2 - Chain with replace:', data);
+  // Result: { success: true, result: 'userFirstName' }
 }
 
-// Example 3: Array operations (GET)
+// Example 3: Text with spaces (URL-encoded)
 async function example3() {
-  const input = encodeURIComponent('[1,2,null,3,"",4,undefined,5]');
-  const url = `${BASE_URL}/compact?input=${input}`;
+  const url = `${BASE_URL}/hello%20world/trim/camelCase/upperFirst`;
   const response = await fetch(url);
   const data = await response.json();
-  console.log('Example 3 - Array compact:', data);
-  // Result: { success: true, ..., result: [1, 2, 3, 4, 5] }
+  console.log('Example 3 - Spaces handling:', data);
+  // Result: { success: true, result: 'HelloWorld' }
 }
 
-// Example 4: String cleaning chain (GET)
+// Example 4: String manipulation with arguments
 async function example4() {
-  const input = encodeURIComponent('  Hello World  ');
-  const url = `${BASE_URL}/trim/kebabCase/toUpper?input=${input}`;
+  const url = `${BASE_URL}/hello/padStart:10:*/truncate:8`;
   const response = await fetch(url);
   const data = await response.json();
-  console.log('Example 4 - String cleaning:', data);
-  // Result: { success: true, ..., result: 'HELLO-WORLD' }
+  console.log('Example 4 - Padding and truncate:', data);
+  // Result: { success: true, result: '*****hel' }
 }
 
-// Example 5: POST with arguments - replace method
+// Example 5: Array operations via split
 async function example5() {
-  const response = await fetch(`${BASE_URL}/replace/toUpper`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      input: 'hello world',
-      args: [[' ', '-'], []]  // First arg for replace, empty arg for toUpper
-    })
-  });
-  const data = await response.json();
-  console.log('Example 5 - POST with args:', data);
-  // Result: { success: true, ..., result: 'HELLO-WORLD' }
-}
-
-// Example 6: POST with multiple args - padStart and truncate
-async function example6() {
-  const response = await fetch(`${BASE_URL}/padStart/truncate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      input: 'hello',
-      args: [[10, '0'], [7]]  // padStart with 10 chars and '0', then truncate to 7
-    })
-  });
-  const data = await response.json();
-  console.log('Example 6 - Complex POST:', data);
-  // Result: { success: true, ..., result: '0000hel' }
-}
-
-// Example 7: Unique values from array (GET)
-async function example7() {
-  const input = encodeURIComponent('[1,1,2,3,3,4,4,5]');
-  const url = `${BASE_URL}/uniq?input=${input}`;
+  const url = `${BASE_URL}/1,2,null,3,,4/split:,/compact/join:,`;
   const response = await fetch(url);
   const data = await response.json();
-  console.log('Example 7 - Unique values:', data);
-  // Result: { success: true, ..., result: [1,2,3,4,5] }
+  console.log('Example 5 - Array operations:', data);
+  // Result: { success: true, result: '1,2,null,3,4' }
+}
+
+// Example 6: Complex string transformation
+async function example6() {
+  const url = `${BASE_URL}/user%20email%20address/replace:%20:_/toLowerCase/camelCase`;
+  const response = await fetch(url);
+  const data = await response.json();
+  console.log('Example 6 - Complex transformation:', data);
+  // Result: { success: true, result: 'userEmailAddress' }
+}
+
+// Example 7: Text cleaning and formatting
+async function example7() {
+  const url = `${BASE_URL}/%20%20%20messy%20text%20%20%20/trim/replace:%20:-/toUpperCase`;
+  const response = await fetch(url);
+  const data = await response.json();
+  console.log('Example 7 - Text cleaning:', data);
+  // Result: { success: true, result: 'MESSY-TEXT' }
 }
 
 // Run examples
 if (require.main === module) {
   (async () => {
-    console.log('Running Lodash as a Service examples with new URL structure...\n');
+    console.log('Running Lodash as a Service examples with clean URL structure...\n');
     
     try {
       await example1();

@@ -1,222 +1,239 @@
 # 🔧 Lodash as a Service
 
-Un service web simple qui vous permet d'exécuter des transformations Lodash via des requêtes HTTP. Ce service est conçu pour les scénarios no-code où vous avez besoin d'effectuer des transformations de données simples sans écrire de code.
+A simple web service that allows you to execute Lodash transformations via HTTP requests. This service is designed for no-code scenarios where you need to perform simple data transformations without writing code.
 
-## 🎯 Pourquoi ce service existe
+## 🎯 Why This Service Exists
 
-Lodash fournit des fonctions utilitaires puissantes pour les tâches de programmation courantes. Ce service rend ces fonctions accessibles via de simples requêtes HTTP, permettant :
+Lodash provides powerful utility functions for common programming tasks. This service makes those functions accessible via simple HTTP requests, enabling:
 
-- **Transformations de données no-code** : Idéal pour les outils d'automatisation comme Zapier, Make, etc.
-- **Manipulations rapides** : String/array/object sans environnement de développement
-- **Intégration facile** : Via HTTP avec n'importe quel service
-- **Traitement de données simplifié** : Dans les workflows d'automatisation
+- **No-code data transformations** : Perfect for automation tools like Zapier, Make, etc.
+- **Quick manipulations** : String/array/object operations without a development environment
+- **Easy integration** : Via HTTP with any service or platform
+- **Simplified data processing** : In automation workflows and API integrations
 
-## ⚡ Comment ça fonctionne
+## ⚡ How It Works
 
-Le service utilise une structure d'URL claire où chaque segment de chemin représente une méthode Lodash. Les méthodes sont appliquées dans l'ordre où elles apparaissent dans l'URL.
+The service uses an intuitive URL structure where everything is in the path. No query parameters or POST bodies needed!
 
-### 🔗 Transformations simples (GET)
-
-Pour les transformations simples sans arguments de méthode :
+### 🎯 New Clean Syntax
 
 ```bash
-GET /{method1}/{method2}/...?input=value
+GET /{input}/{method1:arg1:arg2}/{method2}/...
 ```
 
-**Exemples :**
+**Key Rules:**
+- **First segment**: Your input string (URL-encoded if needed)
+- **Following segments**: Lodash methods with optional arguments  
+- **Arguments**: Separated by colons (`:`)
+- **Special characters**: URL-encode them (`%20` for space, etc.)
+
+### 🔗 Simple Transformations
+
+Most common use case - just input and method:
 
 ```bash
-# Convertir en camelCase
-GET /camelCase?input=hello_world
-→ Résultat: "helloWorld"
+# Convert to camelCase (your main use case!)
+GET /hello_world/camelCase
+→ Result: "helloWorld"
 
-# Chaîner plusieurs transformations
-GET /trim/toLower/camelCase/upperFirst?input=  HELLO_WORLD  
-→ Résultat: "HelloWorld"
+# Chain multiple methods
+GET /user_first_name/replace:_:%20/camelCase
+→ Result: "userFirstName"
 
-# Nettoyer un tableau
-GET /compact?input=[1,null,2,"",3,false,4]
-→ Résultat: [1,2,3,4]
+# Text with spaces (URL-encoded)
+GET /hello%20world/trim/camelCase/upperFirst
+→ Result: "HelloWorld"
 ```
 
-### 🚀 Transformations complexes (POST)
+### 🚀 Advanced Transformations
 
-Pour les transformations nécessitant des arguments :
+Methods with arguments - just add colons:
 
 ```bash
-POST /{method1}/{method2}/...
-Content-Type: application/json
+# String manipulation with arguments
+GET /hello/padStart:10:*/truncate:8
+→ Result: "*****hel"
 
-{
-  "input": "value",
-  "args": [
-    [/* args for method1 */],
-    [/* args for method2 */]
-  ]
-}
+# Search and replace  
+GET /user%20name/replace:%20:_/camelCase
+→ Result: "userName"
+
+# Array operations (via split)
+GET /1,2,null,3,,4/split:,/compact/join:,
+→ Result: "1,2,null,3,4"
 ```
 
-**Exemple :**
+## 🛠 Local Setup
 
-```bash
-POST /replace/toUpper
-Content-Type: application/json
+### Prerequisites
 
-{
-  "input": "hello world",
-  "args": [
-    [" ", "-"],  # args pour replace
-    []           # args pour toUpper (aucun)
-  ]
-}
-→ Résultat: "HELLO-WORLD"
-```
-
-## 🛠 Installation locale
-
-### Prérequis
-
-- Node.js (v18 ou plus récent)
+- Node.js (v18 or later)
 - npm
 
 ### Installation
 
-1. **Cloner le repository :**
+1. **Clone the repository:**
    ```bash
-   git clone https://github.com/votre-username/lodash-as-a-service.git
+   git clone https://github.com/your-username/lodash-as-a-service.git
    cd lodash-as-a-service
    ```
 
-2. **Installer les dépendances :**
+2. **Install dependencies:**
    ```bash
    npm install
    ```
 
-3. **Démarrer le serveur de développement :**
+3. **Start the development server:**
    ```bash
    npm run dev
    ```
 
-Le service sera disponible sur `http://localhost:3000`
+The service will be available at `http://localhost:3000`
 
-### 🐳 Avec Docker
+### 🐳 With Docker
 
 ```bash
 docker build -t lodash-service .
 docker run -p 3000:3000 lodash-service
 ```
 
-## 📖 Exemples d'utilisation
+## 📖 Usage Examples
 
-### Avec HTTPie
+### With HTTPie
 
-**GET simple :**
+**Simple transformations:**
 ```bash
-http GET localhost:3000/trim/camelCase input=='  hello_world  '
+# Basic camelCase
+http GET localhost:3000/hello_world/camelCase
+
+# Chain methods  
+http GET localhost:3000/user%20name/replace:%20:_/camelCase
+
+# Array operations
+http GET localhost:3000/1,2,3,1,2/split:,/uniq/join:,
 ```
 
-**POST complexe avec jo :**
+### With curl
+
+**Simple transformations:**
 ```bash
-jo input='hello world' args=$(jo -a $(jo -a ' ' '-')) | http POST localhost:3000/replace/toUpper
+# Basic camelCase (your main use case!)
+curl 'localhost:3000/hello_world/camelCase'
+
+# Search and replace then camelCase
+curl 'localhost:3000/user%20name/replace:%20:_/camelCase'
+
+# String padding and truncation
+curl 'localhost:3000/hello/padStart:10:*/truncate:8'
 ```
 
-### Avec curl
+### Real-world examples
 
-**GET simple :**
 ```bash
-curl 'localhost:3000/trim/camelCase?input=  hello_world  '
+# Clean up user input for API field names
+curl 'localhost:3000/First%20Name/replace:%20:/camelCase'
+→ "firstName"
+
+# Generate slug from title
+curl 'localhost:3000/My%20Blog%20Post%20Title/replace:%20:-/toLowerCase' 
+→ "my-blog-post-title"
+
+# Clean and format data
+curl 'localhost:3000/%20%20messy%20text%20%20/trim/replace:%20:_/upperCase'
+→ "MESSY_TEXT"
 ```
 
-**POST complexe :**
-```bash
-curl -X POST localhost:3000/replace/toUpper \
-  -H 'Content-Type: application/json' \
-  -d '{"input":"hello world","args":[[" ","-"],[]]}'
-```
+## 🔒 Security
 
-## 🔒 Sécurité
+- **Strict whitelist** : Only safe Lodash methods are allowed
+- **Rate limiting** : Protection against abuse (100 requests/minute)
+- **Input validation** : Prevention of code injection
+- **Timeout protection** : 1 second max per operation
+- **No code execution** : Only predefined method calls
 
-- **Whitelist stricte** : Seules les méthodes Lodash sûres sont autorisées
-- **Rate limiting** : Protection contre l'abus (100 requêtes/minute)
-- **Validation d'entrée** : Prévention d'injection de code
-- **Timeout** : 1 seconde max par opération
-- **Pas d'exécution de code** : Seulement des appels de méthodes prédéfinies
+### Allowed Methods
 
-### Méthodes autorisées
+The following methods are available:
 
-Les méthodes suivantes sont disponibles :
+**String:** camelCase, capitalize, deburr, kebabCase, lowerCase, snakeCase, startCase, trim, truncate, upperCase, upperFirst, etc.
 
-**String :** camelCase, capitalize, deburr, kebabCase, lowerCase, snakeCase, startCase, trim, truncate, upperCase, upperFirst, etc.
+**Array:** compact, concat, difference, drop, flatten, head, intersection, join, last, reverse, slice, uniq, without, etc.
 
-**Array :** compact, concat, difference, drop, flatten, head, intersection, join, last, reverse, slice, uniq, without, etc.
+**Object:** keys, values, entries, omit, pick, invert
 
-**Object :** keys, values, entries, omit, pick, invert
+[See complete list at `/`]
 
-[Voir la liste complète sur `/`]
+## 🚀 Deploy to Fly.io
 
-## 🚀 Déploiement sur Fly.io
-
-1. **Installer le CLI Fly :**
+1. **Install Fly CLI:**
    ```bash
    curl -L https://fly.io/install.sh | sh
    ```
 
-2. **Se connecter :**
+2. **Login:**
    ```bash
    fly auth login
    ```
 
-3. **Lancer l'app :**
+3. **Launch app:**
    ```bash
    fly launch
    ```
 
-4. **Déployer les mises à jour :**
+4. **Deploy updates:**
    ```bash
    fly deploy
    ```
 
-## 🎨 Cas d'usage
+## 🎨 Use Cases
 
 ### No-code automation
 - Zapier/Make workflows
-- Transformation de données entre services
-- Nettoyage de données en temps réel
+- Data transformation between services
+- Real-time data cleaning
 
-### API intégration
-- Middleware de transformation
-- Normalisation de données
-- Format de sortie personnalisé
+### API integration
+- Transformation middleware
+- Data normalization
+- Custom output formatting
 
-### Prototypage rapide
-- Test de transformations
-- Validation de données
-- Scripts d'utilitaires
+### Rapid prototyping
+- Testing transformations
+- Data validation
+- Utility scripts
 
 ## 📊 API Endpoints
 
-| Endpoint | Méthode | Description |
+| Endpoint | Method | Description |
 |----------|---------|-------------|
-| `/` | GET | Documentation interactive |
-| `/{methods}` | GET | Transformations simples |
-| `/{methods}` | POST | Transformations avec args |
-| `/health` | GET | Vérification santé |
+| `/` | GET | Interactive documentation |
+| `/{input}/{methods...}` | GET | Transform input using chained methods |
+| `/health` | GET | Health check |
 
-## 🤝 Contribuer
+### URL Encoding Reference
 
-1. Fork le project
-2. Créer une branche feature (`git checkout -b feature/AmazingFeature`)
-3. Commit vos changements (`git commit -m 'Add AmazingFeature'`)
-4. Push vers la branche (`git push origin feature/AmazingFeature`)
-5. Ouvrir une Pull Request
+| Character | Encoded | Use Case |
+|-----------|---------|----------|
+| Space | `%20` | Text with spaces |
+| Colon | `%3A` | If colon appears in your data |
+| Slash | `%2F` | If slash appears in your data |
+| Comma | `%2C` | If comma appears in your data |
 
-## 📝 Licence
+## 🤝 Contributing
 
-Distribué sous la licence MIT. Voir `LICENSE` pour plus d'informations.
+1. Fork the project
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## ⚠️ Notes importantes
+## 📝 License
 
-- **Process crashes** : Sur Fly.io, si un process crash (impossible avec notre whitelist), il redémarre automatiquement
-- **Performance** : Chaque opération a un timeout de 1 seconde
-- **Limites** : 100 requêtes par minute par IP
-- **Sécurité** : Aucun code arbitraire n'est exécuté
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## ⚠️ Important Notes
+
+- **Process crashes** : On Fly.io, if a process crashes (impossible with our whitelist), it automatically restarts
+- **Performance** : Each operation has a 1-second timeout
+- **Limits** : 100 requests per minute per IP
+- **Security** : No arbitrary code execution allowed
