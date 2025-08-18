@@ -12,43 +12,53 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 100, // 100 requests per minute
+// Rate limiting: 100req/min
+app.use('/', rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 100,
   message: 'Too many requests, please try again later.'
+}));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
-app.use('/', limiter);
+
+// Root endpoint with documentation
+app.get('/', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+
+  const usagePath = path.join(__dirname, 'USAGE.md');
+  const usageContent = fs.readFileSync(usagePath, 'utf8');
+
+  // Set content type to plain text
+  res.type('text/plain');
+  res.send(usageContent);
+});
 
 // Whitelist of allowed Lodash methods (chain-safe methods only)
-// Using Lodash to organize and validate our methods
-const STRING_METHODS = [
+const ALLOWED_METHODS = [
+  // String methods
   'camelCase', 'capitalize', 'deburr', 'endsWith', 'escape', 'escapeRegExp',
   'kebabCase', 'lowerCase', 'lowerFirst', 'pad', 'padEnd', 'padStart',
   'parseInt', 'repeat', 'replace', 'replaceAll', 'slice', 'snakeCase', 'split', 'startCase',
   'startsWith', 'toLower', 'toUpper', 'toLowerCase', 'toUpperCase', 'trim', 'trimEnd', 'trimStart',
-  'truncate', 'unescape', 'upperCase', 'upperFirst', 'words'
-];
+  'truncate', 'unescape', 'upperCase', 'upperFirst', 'words',
 
-const ARRAY_METHODS = [
+  // Array methods
   'compact', 'concat', 'difference', 'drop', 'dropRight', 'flatten',
   'flattenDeep', 'head', 'initial', 'intersection', 'join', 'last',
   'reverse', 'slice', 'tail', 'take', 'takeRight', 'union', 'uniq',
-  'uniqBy', 'without'
-];
+  'uniqBy', 'without',
 
-const OBJECT_METHODS = [
-  'keys', 'values', 'entries', 'invert', 'omit', 'pick'
-];
-
-const UTILITY_METHODS = [
+  // Utility methods
   'identity', 'noop', 'stubArray', 'stubFalse', 'stubObject',
   'stubString', 'stubTrue', 'times', 'toPath', 'uniqueId'
 ];
 
-// Combine all methods using Lodash
-const ALL_ALLOWED_METHODS = _.concat(STRING_METHODS, ARRAY_METHODS, OBJECT_METHODS, UTILITY_METHODS);
-const ALLOWED_METHODS = new Set(ALL_ALLOWED_METHODS);
+// Apply transformation middleware to all routes
+app.use(transformMiddleware);
 
 // Validate chain methods using Lodash
 function validateChain(chain) {
@@ -85,7 +95,7 @@ function validateChain(chain) {
       }
     }
 
-    if (!ALLOWED_METHODS.has(methodName)) {
+    if (!_.includes(ALLOWED_METHODS, methodName)) {
       throw new Error(`Method '${methodName}' is not allowed`);
     }
   });
@@ -223,88 +233,6 @@ function transformMiddleware(req, res, next) {
   }
 }
 
-// Apply transformation middleware to all routes
-app.use(transformMiddleware);
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
-});
-
-// Root endpoint with documentation
-app.get('/', (req, res) => {
-  res.json({
-    name: 'Lodash as a Service',
-    version: '2.0.0',
-    description: 'Transform data using Lodash methods via clean URL syntax',
-    why: 'Perfect for no-code scenarios where you need simple data transformations without writing code',
-
-    syntax: {
-      pattern: '/{input}/{method1:arg1:arg2}/{method2}/...',
-      rules: [
-        'First segment: input string (URL-encoded if needed)',
-        'Following segments: method names with optional arguments',
-        'Arguments separated by colons (:)',
-        'Everything URL-encoded if contains special chars'
-      ]
-    },
-
-    examples: [
-      {
-        description: 'Simple camelCase transformation',
-        url: '/hello_world/camelCase',
-        result: 'helloWorld'
-      },
-      {
-        description: 'Chain multiple transformations',
-        url: '/user_first_name/replace:_:%20/camelCase',
-        result: 'userFirstName'
-      },
-      {
-        description: 'Text with spaces (URL-encoded)',
-        url: '/hello%20world/trim/camelCase/upperFirst',
-        result: 'HelloWorld'
-      },
-      {
-        description: 'String manipulation with arguments',
-        url: '/hello/padStart:10:*/truncate:8',
-        result: '*****hel'
-      },
-      {
-        description: 'Array operations (via split)',
-        url: '/1,2,null,3,,4/split:,/compact/join:,',
-        result: '1,2,null,3,4'
-      }
-    ],
-
-    httpie_examples: [
-      "http GET localhost:3000/hello_world/camelCase",
-      "http GET localhost:3000/user%20name/replace:%20:_/camelCase",
-      "http GET localhost:3000/1,2,3,1,2/split:,/uniq/join:,"
-    ],
-
-    curl_examples: [
-      "curl 'localhost:3000/hello_world/camelCase'",
-      "curl 'localhost:3000/user%20name/replace:%20:_/camelCase'",
-      "curl 'localhost:3000/text/padStart:10:*/truncate:8'"
-    ],
-
-    allowedMethods: _.sortBy(Array.from(ALLOWED_METHODS)),
-
-    endpoints: {
-      '/{input}/{methods...}': 'Transform input using chained Lodash methods',
-      '/health': 'Health check endpoint'
-    },
-
-    encoding: {
-      space: '%20',
-      colon: '%3A',
-      slash: '%2F',
-      comma: '%2C',
-      note: 'URL-encode special characters if they appear in your input or arguments'
-    }
-  });
-});
 
 // Start server
 app.listen(PORT, () => {

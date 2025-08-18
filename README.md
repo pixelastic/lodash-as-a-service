@@ -155,11 +155,11 @@ curl 'localhost:3000/%20%20messy%20text%20%20/trim/replace:%20:_/upperCase'
 
 The following methods are available:
 
-**String:** camelCase, capitalize, deburr, kebabCase, lowerCase, snakeCase, startCase, trim, truncate, upperCase, upperFirst, etc.
+**String:** camelCase, capitalize, deburr, kebabCase, lowerCase, snakeCase, startCase, trim, truncate, upperCase, upperFirst, replaceAll, etc.
 
 **Array:** compact, concat, difference, drop, flatten, head, intersection, join, last, reverse, slice, uniq, without, etc.
 
-**Object:** keys, values, entries, omit, pick, invert
+**Utility:** identity, noop, times, uniqueId, etc.
 
 [See complete list at `/`]
 
