@@ -1,21 +1,27 @@
-FROM node:20-alpine
+FROM alpine:3.22
 
+# Install pinned versions for reproducibility
+RUN apk add --no-cache \
+      bash=5.2.37-r0 \
+      nodejs=22.16.0-r2 \
+      npm=11.3.0-r0
+      # yarn=1.22.22-r1
+
+# Workdir
+RUN mkdir -p /app
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Node.js dependencies
+COPY .yarnrc.yml /app/
+COPY package.json /app/
+COPY yarn.lock /app/
+RUN corepack enable
+RUN yarn install
 
-# Install production dependencies only
-RUN npm ci --only=production
+# Scripts
+COPY server.js /app/
+COPY lodash.js /app/
+COPY USAGE.md /app/
 
-# Copy application code
-COPY . .
-
-# Expose port
-EXPOSE 3000
-
-# Run as non-root user
-USER node
-
-# Start the application
-CMD ["node", "server.js"]
+# Run the main script by default
+CMD ["node", "/app/server.js"]
