@@ -1,20 +1,25 @@
 app = "lodash-as-a-service"
 primary_region = "cdg"
 
-[build]
+[[services]]
+internal_port = 3000        # The exposed port
+auto_stop_machines = 'stop' # Stop (not suspend) machines when idle
+min_machines_running = 0    # Stop all machines (default is keep one up)
 
-[http_service]
-  internal_port = 3000
-  force_https = true
-  auto_stop_machines = "stop"
-  auto_start_machines = true
-  min_machines_running = 0
+# Force HTTPS
+[[services.ports]]
+port = 80
+handlers = ['http']
+force_https = true
 
-  [http_service.concurrency]
-    type = "requests"
-    hard_limit = 250
-    soft_limit = 200
+# Healthcheck
+[[services.http_checks]]
+path = '/health'
+method = 'GET'
+grace_period = '30s' # Wait that long before the first test
+interval = '1m'      # Check every...
+timeout = '10s'      # Considered dead if no response in...
 
 [[vm]]
-  size = "shared-cpu-1x"
-  memory = "256mb"
+size = "shared-cpu-1x"
+memory = "256mb"
