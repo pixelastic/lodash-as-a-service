@@ -49,7 +49,7 @@ Slash    →  %2F
 
 ### Array Methods
 `compact`, `concat`, `difference`, `drop`, `dropRight`, `flatten`, `flattenDeep`, `head`,
-`initial`, `intersection`, `join`, `last`, `reverse`, `slice`, `tail`, `take`, `takeRight`,
+`initial`, `intersection`, `join`, `last`, `reverse`, `sort`, `slice`, `tail`, `take`, `takeRight`,
 `union`, `uniq`, `uniqBy`, `without`
 
 ### Utility Methods

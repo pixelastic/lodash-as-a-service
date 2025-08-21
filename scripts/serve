@@ -2,4 +2,3 @@
 
 docker-run lodash-as-a-service:latest \
   -p 3000:3000
-

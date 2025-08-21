@@ -101,6 +101,7 @@ const ALLOWED_METHODS = [
   "join",
   "last",
   "reverse",
+  "sort",
   "slice",
   "tail",
   "take",

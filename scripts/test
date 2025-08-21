@@ -80,6 +80,9 @@ test_endpoint "KebabCase transformation" "/HelloWorld/kebabCase" "hello-world"
 # Test 10: Multiple replacements using replaceAll
 test_endpoint "Multiple replacements with replaceAll" "/hello_world_test/replaceAll:_:%20/replaceAll:%20:-/toUpper" "HELLO-WORLD-TEST"
 
+# Test 11: Sort an array
+test_endpoint "Sort an array" "/1,2,5,3,,4/split:,/compact/sort/join:," "1,2,3,4,5"
+
 echo
 echo "===================================="
 echo "Test Results:"
