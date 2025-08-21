@@ -1,11 +1,11 @@
-import express from 'express';
-import _ from './lodash.js';
-import cors from 'cors';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import express from "express";
+import _ from "./lodash.js";
+import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,29 +19,32 @@ app.use(cors());
 app.use(express.json());
 
 // Rate limiting: 100req/min
-app.use('/', rateLimit({
-  windowMs: 1 * 60 * 1000,
-  max: 100,
-  message: 'Too many requests, please try again later.'
-}));
+app.use(
+  "/",
+  rateLimit({
+    windowMs: 1 * 60 * 1000,
+    max: 100,
+    message: "Too many requests, please try again later.",
+  }),
+);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+app.get("/health", (req, res) => {
+  res.json({ status: "healthy", timestamp: new Date().toISOString() });
 });
 
 // Documentation handler - serves USAGE.md as plain text on / and any POST
 // request
 function serveDocumentation(req, res) {
-  const usagePath = path.join(__dirname, 'USAGE.md');
-  const usageContent = fs.readFileSync(usagePath, 'utf8');
+  const usagePath = path.join(__dirname, "README.md");
+  const usageContent = fs.readFileSync(usagePath, "utf8");
 
   // Set content type to plain text
-  res.type('text/plain');
+  res.type("text/plain");
   res.send(usageContent);
 }
 app.use((req, res, next) => {
-  if (req.method == 'POST' || req.path == '/') {
+  if (req.method == "POST" || req.path == "/") {
     return serveDocumentation(req, res, next);
   }
   next();
@@ -50,21 +53,74 @@ app.use((req, res, next) => {
 // Whitelist of allowed Lodash methods
 const ALLOWED_METHODS = [
   // String methods
-  'camelCase', 'capitalize', 'deburr', 'endsWith', 'escape', 'escapeRegExp',
-  'kebabCase', 'lowerCase', 'lowerFirst', 'pad', 'padEnd', 'padStart',
-  'parseInt', 'repeat', 'replace', 'replaceAll', 'slice', 'snakeCase', 'split', 'startCase',
-  'startsWith', 'toLower', 'toUpper', 'toLowerCase', 'toUpperCase', 'trim', 'trimEnd', 'trimStart',
-  'truncate', 'unescape', 'upperCase', 'upperFirst', 'words',
+  "camelCase",
+  "capitalize",
+  "deburr",
+  "endsWith",
+  "escape",
+  "escapeRegExp",
+  "kebabCase",
+  "lowerCase",
+  "lowerFirst",
+  "pad",
+  "padEnd",
+  "padStart",
+  "parseInt",
+  "repeat",
+  "replace",
+  "replaceAll",
+  "slice",
+  "snakeCase",
+  "split",
+  "startCase",
+  "startsWith",
+  "toLower",
+  "toUpper",
+  "toLowerCase",
+  "toUpperCase",
+  "trim",
+  "trimEnd",
+  "trimStart",
+  "truncate",
+  "unescape",
+  "upperCase",
+  "upperFirst",
+  "words",
 
   // Array methods
-  'compact', 'concat', 'difference', 'drop', 'dropRight', 'flatten',
-  'flattenDeep', 'head', 'initial', 'intersection', 'join', 'last',
-  'reverse', 'slice', 'tail', 'take', 'takeRight', 'union', 'uniq',
-  'uniqBy', 'without',
+  "compact",
+  "concat",
+  "difference",
+  "drop",
+  "dropRight",
+  "flatten",
+  "flattenDeep",
+  "head",
+  "initial",
+  "intersection",
+  "join",
+  "last",
+  "reverse",
+  "slice",
+  "tail",
+  "take",
+  "takeRight",
+  "union",
+  "uniq",
+  "uniqBy",
+  "without",
 
   // Utility methods
-  'identity', 'noop', 'stubArray', 'stubFalse', 'stubObject',
-  'stubString', 'stubTrue', 'times', 'toPath', 'uniqueId'
+  "identity",
+  "noop",
+  "stubArray",
+  "stubFalse",
+  "stubObject",
+  "stubString",
+  "stubTrue",
+  "times",
+  "toPath",
+  "uniqueId",
 ];
 
 // Apply main transformation handler to all routes
@@ -89,15 +145,14 @@ function mainTransformationHandler(req, res, next) {
     });
 
     res.json({
-      result
+      result,
     });
-
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: _.get(error, 'message', 'Unknown error'),
-      syntax: 'Use: /{input}/{method1:arg1:arg2}/{method2}/...',
-      example: '/hello%20world/camelCase'
+      error: _.get(error, "message", "Unknown error"),
+      syntax: "Use: /{input}/{method1:arg1:arg2}/{method2}/...",
+      example: "/hello%20world/camelCase",
     });
   }
 }
@@ -105,11 +160,7 @@ function mainTransformationHandler(req, res, next) {
 // Parse and validate URL request - returns validated input and methods or throws error
 // Syntax: /{input}/{method1:arg1:arg2}/{method2}/...
 function parseAndValidateRequest(path) {
-  const segments = _.chain(path)
-    .trimStart('/')
-    .split('/')
-    .compact()
-    .value();
+  const segments = _.chain(path).trimStart("/").split("/").compact().value();
 
   if (_.isEmpty(segments)) {
     return { input: null, methods: [] };
@@ -119,9 +170,10 @@ function parseAndValidateRequest(path) {
   const input = decodeURIComponent(segments[0]);
 
   // Remaining segments are methods with optional arguments
-  const methods = _.chain(segments).slice(1).map(
-    (segment) => {
-      const parts = _.split(segment, ':');
+  const methods = _.chain(segments)
+    .slice(1)
+    .map((segment) => {
+      const parts = _.split(segment, ":");
 
       // Method name
       const name = _.head(parts);
@@ -130,14 +182,11 @@ function parseAndValidateRequest(path) {
       }
 
       // Args
-      const args = _.chain(parts)
-        .slice(1)
-        .map(decodeURIComponent)
-        .value();
+      const args = _.chain(parts).slice(1).map(decodeURIComponent).value();
 
       return { name, args: args };
-    }
-  ).value()
+    })
+    .value();
 
   return { input, methods };
 }
