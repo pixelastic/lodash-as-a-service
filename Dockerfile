@@ -24,6 +24,7 @@ RUN yarn install
 COPY server.js /app/
 COPY lodash.js /app/
 COPY README.md /app/
+COPY template.html /app/
 
 # Run the main script by default
 CMD ["node", "/app/server.js"]

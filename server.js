@@ -3,6 +3,7 @@ import _ from "./lodash.js";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import { marked } from "marked";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -33,19 +34,27 @@ app.get("/health", (req, res) => {
   res.json({ status: "healthy", timestamp: new Date().toISOString() });
 });
 
-// Documentation handler - serves USAGE.md as plain text on / and any POST
-// request
+// Documentation handler - serves README.md as HTML on /
 function serveDocumentation(req, res) {
   const usagePath = path.join(__dirname, "README.md");
-  const usageContent = fs.readFileSync(usagePath, "utf8");
+  const markdownContent = fs.readFileSync(usagePath, "utf8");
+  
+  // Load HTML template
+  const templatePath = path.join(__dirname, "template.html");
+  const template = fs.readFileSync(templatePath, "utf8");
 
-  // Set content type to plain text
-  res.type("text/plain");
-  res.send(usageContent);
+  // Convert markdown to HTML using marked
+  const htmlBody = marked(markdownContent);
+  
+  // Replace placeholder with content
+  const html = template.replace("{{CONTENT}}", htmlBody);
+
+  res.type("text/html");
+  res.send(html);
 }
 app.use((req, res, next) => {
-  if (req.method == "POST" || req.path == "/") {
-    return serveDocumentation(req, res, next);
+  if (req.path == "/") {
+    return serveDocumentation(req, res);
   }
   next();
 });

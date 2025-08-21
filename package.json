@@ -13,13 +13,13 @@
     "express": "5.1.0",
     "express-rate-limit": "8.0.1",
     "helmet": "8.1.0",
-    "lodash": "4.17.21"
+    "lodash": "4.17.21",
+    "marked": "16.2.0"
   },
   "scripts": {
     "build": "./scripts/build",
     "serve": "./scripts/serve",
     "shell": "./scripts/shell",
     "test": "./scripts/test"
-  },
-  "packageManager": "yarn@4.5.2"
+  }
 }

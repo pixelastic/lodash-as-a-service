@@ -1,4 +1,4 @@
-# 🔧 Lodash as a Service
+# ▂ Lodash as a Service
 
 [https://lodash-as-a-service.fly.dev/](https://lodash-as-a-service.fly.dev/)
 
@@ -21,7 +21,7 @@ curl "https://lodash-as-a-service.fly.dev/hello_world/camelCase"
 {"result":"helloWorld"}
 
 curl "https://lodash-as-a-service.fly.dev/1,2,5,3,,4/split:,/compact/sort/join:,"
-→ {"result":[1,2,3,4,5]}
+→ {"result":["1","2","3","4","5"]}
 
 curl https://lodash-as-a-service.fly.dev/My%20Blog%20Post%20Title/replaceAll:%20:-/camelCase
 → {"result": "myBlogPostTitle"}
@@ -32,20 +32,20 @@ curl https://lodash-as-a-service.fly.dev/john,doe,30,engineer/split:,/slice:0:2/
 
 ## URL Encoding Reference
 
-Space    →  %20
-Colon    →  %3A
-Slash    →  %2F
+- Space    →  %20
+- Colon    →  %3A
+- Slash    →  %2F
 
 ## Available Methods
 
 ### String Methods
 `camelCase`, `capitalize`, `deburr`, `endsWith`, `escape`, `escapeRegExp`, `kebabCase`,
 `lowerCase`, `lowerFirst`, `pad`, `padEnd`, `padStart`, `parseInt`, `repeat`, `replace`,
-`replaceAll\*`, `slice`, `snakeCase`, `split`, `startCase`, `startsWith`, `toLower`,
+`replaceAll`, `slice`, `snakeCase`, `split`, `startCase`, `startsWith`, `toLower`,
 `toUpper`, `toLowerCase`, `toUpperCase`, `trim`, `trimEnd`, `trimStart`, `truncate`,
 `unescape`, `upperCase`, `upperFirst`, `words`
 
-**Note:**: `replaceAll` replaces ALL occurrences (not just first)
+**Note:** `replaceAll` replaces ALL occurrences (not just first)
 
 ### Array Methods
 `compact`, `concat`, `difference`, `drop`, `dropRight`, `flatten`, `flattenDeep`, `head`,
