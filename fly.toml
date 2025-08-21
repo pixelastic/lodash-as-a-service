@@ -1,19 +1,15 @@
 app = "lodash-as-a-service"
 primary_region = "cdg"
 
-[[services]]
+[http_service]
 internal_port = 3000        # The exposed port
 auto_stop_machines = 'stop' # Stop (not suspend) machines when idle
 min_machines_running = 0    # Stop all machines (default is keep one up)
-
-# Force HTTPS
-[[services.ports]]
-port = 80
-handlers = ['http']
+auto_start_machines = true
 force_https = true
 
 # Healthcheck
-[[services.http_checks]]
+[[http_service.checks]]
 path = '/health'
 method = 'GET'
 grace_period = '30s' # Wait that long before the first test
