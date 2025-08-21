@@ -16,19 +16,21 @@ I built this out of the need for simple text formatting in no-code workflows.
 
 ## Quick Examples
 
-```bash
-curl "https://lodash-as-a-service.fly.dev/hello_world/camelCase"
-{"result":"helloWorld"}
+[https://lodash-as-a-service.fly.dev/hello_world/camelCase]()
 
-curl "https://lodash-as-a-service.fly.dev/1,2,5,3,,4/split:,/compact/sort/join:,"
-→ {"result":["1","2","3","4","5"]}
+`{"result":"helloWorld"}`
 
-curl https://lodash-as-a-service.fly.dev/My%20Blog%20Post%20Title/replaceAll:%20:-/camelCase
-→ {"result": "myBlogPostTitle"}
+[https://lodash-as-a-service.fly.dev/1,2,5,3,,4/split:,/compact/sort/join:,]()
 
-curl https://lodash-as-a-service.fly.dev/john,doe,30,engineer/split:,/slice:0:2/join:%20/startCase
-→ {"result":"John Doe"}
-```
+`{"result":["1","2","3","4","5"]}`
+
+[https://lodash-as-a-service.fly.dev/My%20Blog%20Post%20Title/replaceAll:%20:-/camelCase]()
+
+`{"result": "myBlogPostTitle"}`
+
+[https://lodash-as-a-service.fly.dev/john,doe,30,engineer/split:,/slice:0:2/join:%20/startCase]()
+
+`{"result":"John Doe"}`
 
 ## URL Encoding Reference
 
