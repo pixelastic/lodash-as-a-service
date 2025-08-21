@@ -138,12 +138,15 @@ function mainTransformationHandler(req, res, next) {
       return serveDocumentation(req, res);
     }
 
-    // Apply the validated method chain
-    let result = input;
+    // Apply the validated method chain using _.chain
+    let chainedResult = _.chain(input);
+
     _.forEach(methods, (method) => {
       const { name, args } = method;
-      result = _[name](result, ...args);
+      chainedResult = chainedResult[name](...args);
     });
+
+    const result = chainedResult.value();
 
     res.json({
       result,
@@ -152,8 +155,7 @@ function mainTransformationHandler(req, res, next) {
     res.status(400).json({
       success: false,
       error: _.get(error, "message", "Unknown error"),
-      syntax: "Use: /{input}/{method1:arg1:arg2}/{method2}/...",
-      example: "/hello%20world/camelCase",
+      syntax: "/{input}/{method1:arg1:arg2}/{method2}/...",
     });
   }
 }
@@ -180,6 +182,12 @@ function parseAndValidateRequest(path) {
       const name = _.head(parts);
       if (!_.includes(ALLOWED_METHODS, name)) {
         throw new Error(`Method '${name}' is not allowed`);
+      }
+
+      // Check if method exists on chain
+      const testChain = _.chain();
+      if (typeof testChain[name] !== "function") {
+        throw new Error(`_[${name}] is not a function`);
       }
 
       // Args
