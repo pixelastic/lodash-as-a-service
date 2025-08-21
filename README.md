@@ -22,7 +22,7 @@ I built this out of the need for simple text formatting in no-code workflows.
 
 [https://lodash-as-a-service.fly.dev/1,2,5,3,,4/split:,/compact/sort/join:,]()
 
-`{"result":["1","2","3","4","5"]}`
+`{"result":"12345"}`
 
 [https://lodash-as-a-service.fly.dev/My%20Blog%20Post%20Title/replaceAll:%20:-/camelCase]()
 
