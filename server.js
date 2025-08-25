@@ -38,14 +38,14 @@ app.get("/health", (req, res) => {
 function serveDocumentation(req, res) {
   const usagePath = path.join(__dirname, "README.md");
   const markdownContent = fs.readFileSync(usagePath, "utf8");
-  
+
   // Load HTML template
   const templatePath = path.join(__dirname, "template.html");
   const template = fs.readFileSync(templatePath, "utf8");
 
   // Convert markdown to HTML using marked
   const htmlBody = marked(markdownContent);
-  
+
   // Replace placeholder with content
   const html = template.replace("{{CONTENT}}", htmlBody);
 
@@ -76,8 +76,9 @@ const ALLOWED_METHODS = [
   "padStart",
   "parseInt",
   "repeat",
-  "replace",
+  "removeEmojis",
   "replaceAll",
+  "replace",
   "slice",
   "snakeCase",
   "split",
