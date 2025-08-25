@@ -136,6 +136,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"emojibase-regex@npm:^16.0.0":
+  version: 16.0.0
+  resolution: "emojibase-regex@npm:16.0.0"
+  checksum: 10c0/8ee5ff798e51caa581434b1cb2f9737e50195093c4efa1739df21a50a5496f80517924787d865e8cf7d6a0b4c90dbedc04bdc506dcbcc582e14cdf0bb47af0f0
+  languageName: node
+  linkType: hard
+
 "encodeurl@npm:^2.0.0":
   version: 2.0.0
   resolution: "encodeurl@npm:2.0.0"
@@ -374,6 +381,7 @@ __metadata:
   resolution: "lodash-as-a-service@workspace:."
   dependencies:
     cors: "npm:2.8.5"
+    emojibase-regex: "npm:^16.0.0"
     express: "npm:5.1.0"
     express-rate-limit: "npm:8.0.1"
     helmet: "npm:8.1.0"

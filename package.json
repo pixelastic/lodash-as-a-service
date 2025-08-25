@@ -10,6 +10,7 @@
   "packageManager": "yarn@4.5.2",
   "dependencies": {
     "cors": "2.8.5",
+    "emojibase-regex": "^16.0.0",
     "express": "5.1.0",
     "express-rate-limit": "8.0.1",
     "helmet": "8.1.0",
@@ -20,6 +21,7 @@
     "build": "./scripts/build",
     "serve": "./scripts/serve",
     "shell": "./scripts/shell",
-    "test": "./scripts/test"
+    "test": "./scripts/test",
+    "test:unit": "node --test test/*.test.js"
   }
 }

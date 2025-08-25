@@ -43,11 +43,13 @@ I built this out of the need for simple text formatting in no-code workflows.
 ### String Methods
 `camelCase`, `capitalize`, `deburr`, `endsWith`, `escape`, `escapeRegExp`, `kebabCase`,
 `lowerCase`, `lowerFirst`, `pad`, `padEnd`, `padStart`, `parseInt`, `repeat`, `replace`,
-`replaceAll`, `slice`, `snakeCase`, `split`, `startCase`, `startsWith`, `toLower`,
+`slice`, `snakeCase`, `split`, `startCase`, `startsWith`, `toLower`,
 `toUpper`, `toLowerCase`, `toUpperCase`, `trim`, `trimEnd`, `trimStart`, `truncate`,
 `unescape`, `upperCase`, `upperFirst`, `words`
 
-**Note:** `replaceAll` replaces ALL occurrences (not just first)
+**New methods:**
+- `replaceAll` replaces ALL occurrences (not just first)
+- `removeEmojis` replaces emojis from input string
 
 ### Array Methods
 `compact`, `concat`, `difference`, `drop`, `dropRight`, `flatten`, `flattenDeep`, `head`,
