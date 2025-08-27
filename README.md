@@ -16,19 +16,19 @@ I built this out of the need for simple text formatting in no-code workflows.
 
 ## Quick Examples
 
-[https://lodash-as-a-service.fly.dev/hello_world/camelCase]()
+[https://lodash-as-a-service.fly.dev/hello_world/camelCase](https://lodash-as-a-service.fly.dev/hello_world/camelCase)
 
 `{"result":"helloWorld"}`
 
-[https://lodash-as-a-service.fly.dev/1,2,5,3,,4/split:,/compact/sort/join:,]()
+[https://lodash-as-a-service.fly.dev/1,2,5,3,,4/split:,/compact/sort/join:,](https://lodash-as-a-service.fly.dev/1,2,5,3,,4/split:,/compact/sort/join:,)
 
 `{"result":"12345"}`
 
-[https://lodash-as-a-service.fly.dev/My%20Blog%20Post%20Title/replaceAll:%20:-/camelCase]()
+[https://lodash-as-a-service.fly.dev/My%20Blog%20Post%20Title/replaceAll:%20:-/camelCase](https://lodash-as-a-service.fly.dev/My%20Blog%20Post%20Title/replaceAll:%20:-/camelCase)
 
 `{"result": "myBlogPostTitle"}`
 
-[https://lodash-as-a-service.fly.dev/john,doe,30,engineer/split:,/slice:0:2/join:%20/startCase]()
+[https://lodash-as-a-service.fly.dev/john,doe,30,engineer/split:,/slice:0:2/join:%20/startCase](https://lodash-as-a-service.fly.dev/john,doe,30,engineer/split:,/slice:0:2/join:%20/startCase)
 
 `{"result":"John Doe"}`
 
