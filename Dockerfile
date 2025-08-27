@@ -1,10 +1,10 @@
 FROM alpine:3.22
 
-# Install pinned versions for reproducibility
+# Using ~= to pin major.minor.patch for reproducibility
 RUN apk add --no-cache \
-      bash=5.2.37-r0 \
-      nodejs=22.16.0-r2 \
-      npm=11.3.0-r0
+      bash~=5.2.37 \
+      nodejs~=22.16.0 \
+      npm~=11.3.0
 
 # Install corepack, so we can pick a specific yarn version
 RUN npm install -g corepack
