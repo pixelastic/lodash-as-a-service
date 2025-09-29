@@ -1,7 +1,7 @@
 import _ from "lodash";
 import EMOJI_REGEX from "emojibase-regex";
 
-// Extend Lodash with our custom methods using official mixin API
+// Extend Lodash with our custom methods
 _.mixin({
   replaceAll: function (string, search, replacement) {
     // Escape special regex characters in the search string
