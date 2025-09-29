@@ -111,6 +111,7 @@ const ALLOWED_METHODS = [
   "join",
   "last",
   "reverse",
+  "shuffle",
   "sort",
   "slice",
   "tail",
@@ -124,6 +125,7 @@ const ALLOWED_METHODS = [
   // Utility methods
   "identity",
   "noop",
+  "range",
   "stubArray",
   "stubFalse",
   "stubObject",
@@ -134,11 +136,51 @@ const ALLOWED_METHODS = [
   "uniqueId",
 ];
 
+// Special constant for generator methods (when using _ as input)
+const LODASH_ROOT = Symbol("lodash-root");
+
 // Apply main transformation handler to all routes
 app.use(mainTransformationHandler);
 
+// Apply a chain of methods to an input value
+function applyMethodChain(input, methods) {
+  let chainedResult = _.chain(input);
+
+  _.forEach(methods, (method) => {
+    const { name, args } = method;
+    chainedResult = chainedResult[name](...args);
+  });
+
+  return chainedResult.value();
+}
+
+// Apply generator method (like range) then chain remaining methods
+function applyGeneratorMethod(methods) {
+  if (_.isEmpty(methods)) {
+    throw new Error("No generator method provided");
+  }
+
+  const firstMethod = methods[0];
+  const { name, args } = firstMethod;
+
+  // Call the generator method directly on lodash
+  if (typeof _[name] !== "function") {
+    throw new Error(`_[${name}] is not a function`);
+  }
+
+  const generatedValue = _[name](...args);
+
+  // If there are more methods, chain them on the generated value
+  if (methods.length > 1) {
+    return applyMethodChain(generatedValue, methods.slice(1));
+  }
+
+  return generatedValue;
+}
+
 // Main transformation handler - parses URLs, validates methods, and applies transformations
-// Entry point for all Lodash transformations via URL syntax: /{input}/{method1:arg1:arg2}/{method2}/...
+// Entry point for all Lodash transformations via URL syntax:
+// /{input}/{method1:arg1:arg2}/{method2}/... or /_/generator:arg1:arg2/...
 function mainTransformationHandler(req, res, next) {
   try {
     const { input, methods } = parseAndValidateRequest(req.path);
@@ -148,15 +190,11 @@ function mainTransformationHandler(req, res, next) {
       return serveDocumentation(req, res);
     }
 
-    // Apply the validated method chain using _.chain
-    let chainedResult = _.chain(input);
-
-    _.forEach(methods, (method) => {
-      const { name, args } = method;
-      chainedResult = chainedResult[name](...args);
-    });
-
-    const result = chainedResult.value();
+    // Check if this is a generator method request (input is LODASH_ROOT)
+    const result =
+      input === LODASH_ROOT
+        ? applyGeneratorMethod(methods)
+        : applyMethodChain(input, methods);
 
     res.json({
       result,
@@ -165,13 +203,14 @@ function mainTransformationHandler(req, res, next) {
     res.status(400).json({
       success: false,
       error: _.get(error, "message", "Unknown error"),
-      syntax: "/{input}/{method1:arg1:arg2}/{method2}/...",
+      syntax:
+        "/{input}/{method1:arg1:arg2}/{method2}/... or /_/generator:arg1:arg2/...",
     });
   }
 }
 
 // Parse and validate URL request - returns validated input and methods or throws error
-// Syntax: /{input}/{method1:arg1:arg2}/{method2}/...
+// Syntax: /{input}/{method1:arg1:arg2}/{method2}/... or /_/generator:arg1:arg2/...
 function parseAndValidateRequest(path) {
   const segments = _.chain(path).trimStart("/").split("/").compact().value();
 
@@ -180,8 +219,10 @@ function parseAndValidateRequest(path) {
   }
 
   // First segment is the input (URL-encoded)
-  const input = decodeURIComponent(segments[0]);
+  const firstSegment = decodeURIComponent(segments[0]);
 
+  // Special case: _ means use lodash root for generator methods
+  const input = firstSegment === "_" ? LODASH_ROOT : firstSegment;
   // Remaining segments are methods with optional arguments
   const methods = _.chain(segments)
     .slice(1)

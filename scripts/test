@@ -83,6 +83,9 @@ test_endpoint "Multiple replacements with replaceAll" "/hello_world_test/replace
 # Test 11: Sort an array
 test_endpoint "Sort an array" "/1,2,5,3,,4/split:,/compact/sort/join:," "1,2,3,4,5"
 
+# Test 12: Range from 12 to 20, then slice to get a subset
+test_endpoint "Range 12-20 then slice 2-5" "/_/range:12:21/slice:2:5/join:," "14,15,16"
+
 echo
 echo "===================================="
 echo "Test Results:"
