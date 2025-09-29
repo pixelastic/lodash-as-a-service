@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Documentation handler - serves README.md as HTML on /
 export function handle(req, res) {
-  const readmePath = path.join(__dirname, "../../README.md");
+  const readmePath = path.join(__dirname, "../README.md");
   const markdownContent = fs.readFileSync(readmePath, "utf8");
 
   // Load HTML template

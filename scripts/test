@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/env zsh
 
 # Test suite for Lodash as a Service
 # New syntax: /{input}/{method1:arg1:arg2}/{method2}/...

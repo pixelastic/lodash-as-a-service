@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/env zsh
 
 docker-run-interactive lodash-as-a-service:latest \
   -p 3000:3000

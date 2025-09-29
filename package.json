@@ -20,6 +20,7 @@
   "scripts": {
     "build": "./scripts/build",
     "serve": "./scripts/serve",
+    "deploy": "./scripts/deploy",
     "shell": "./scripts/shell",
     "test": "./scripts/test",
     "test:unit": "node --test test/*.test.js"
