@@ -12,6 +12,16 @@ _.mixin({
     // Use emojibase-regex for comprehensive emoji detection
     return string.replace(EMOJI_REGEX, "");
   },
+  sortNumeric: function (array) {
+    return array.slice().sort((a, b) => {
+      // Si les deux sont des nombres, tri numérique
+      if (typeof a === 'number' && typeof b === 'number') {
+        return a - b;
+      }
+      // Sinon tri lexicographique standard
+      return String(a).localeCompare(String(b));
+    });
+  },
 });
 
 // Export the extended Lodash instance

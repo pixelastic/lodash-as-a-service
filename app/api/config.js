@@ -57,6 +57,7 @@ export const ALLOWED_METHODS = [
   "reverse",
   "shuffle",
   "sort",
+  "sortNumeric",
   "slice",
   "tail",
   "take",

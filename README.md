@@ -53,8 +53,11 @@ I built this out of the need for simple text formatting in no-code workflows.
 
 ### Array Methods
 `compact`, `concat`, `difference`, `drop`, `dropRight`, `flatten`, `flattenDeep`, `head`,
-`initial`, `intersection`, `join`, `last`, `reverse`, `sort`, `slice`, `tail`, `take`, `takeRight`,
+`initial`, `intersection`, `join`, `last`, `reverse`, `sort`, `sortNumeric`, `slice`, `tail`, `take`, `takeRight`,
 `union`, `uniq`, `uniqBy`, `without`
+
+**New methods:**
+- `sortNumeric` sorts numbers correctly (1, 2, 10 vs 1, 10, 2)
 
 ### Utility Methods
 `identity`, `noop`, `stubArray`, `stubFalse`, `stubObject`, `stubString`, `stubTrue`,
