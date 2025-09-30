@@ -3,6 +3,13 @@
 // Special constant for generator methods (when using _ as input)
 export const LODASH_ROOT = Symbol("lodash-root");
 
+// Methods that accept transformation chains as arrays
+export const CHAIN_METHODS = [
+  "map",
+  "filter",
+  // Add other methods here as needed (reduce, etc.)
+];
+
 // Whitelist of allowed Lodash methods
 export const ALLOWED_METHODS = [
   // String methods
@@ -76,6 +83,7 @@ export const ALLOWED_METHODS = [
   "identity",
   "noop",
   "range",
+  "renameKey",
   "stubArray",
   "stubFalse",
   "stubObject",

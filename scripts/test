@@ -52,8 +52,8 @@ test_post_endpoint() {
   local payload="$2"
   local expected="$3"
 
-  # Make POST request and extract result field
-  local actual=$(curl -s -X POST "$BASE_URL/" -H "Content-Type: application/json" -d "$payload" | jq -r '.result' 2>/dev/null)
+  # Make POST request and extract result field with compact format
+  local actual=$(curl -s -X POST "$BASE_URL/" -H "Content-Type: application/json" -d "$payload" | jq -c '.result' 2>/dev/null)
 
   display_test_result "$description" "$expected" "$actual" "Payload: $payload"
 }
@@ -113,13 +113,37 @@ echo
 echo "Testing POST endpoints:"
 
 # Test 13: Simple POST camelCase
-test_post_endpoint "POST camelCase" '{"input":"hello_world","methods":["camelCase"]}' "helloWorld"
+test_post_endpoint "POST camelCase" '{"input":"hello_world","methods":["camelCase"]}' '"helloWorld"'
 
 # Test 14: POST with chain
-test_post_endpoint "POST replace then camelCase" '{"input":"user_first_name","methods":["replace:_: ","camelCase"]}' "userFirstName"
+test_post_endpoint "POST replace then camelCase" '{"input":"user_first_name","methods":["replace:_: ","camelCase"]}' '"userFirstName"'
 
 # Test 15: POST range and slice
-test_post_endpoint "POST range and slice" '{"input":"_","methods":["range:12:21","slice:2:5","join:,"]}' "14,15,16"
+test_post_endpoint "POST range and slice" '{"input":"_","methods":["range:12:21","slice:2:5","join:,"]}' '"14,15,16"'
+
+# Test 16: POST nested arrays with map
+test_post_endpoint "POST nested arrays with map" '{"input":"hello,world","methods":["split:,",["map",["@upperCase"]]]}' '["HELLO","WORLD"]'
+
+# Test 17: POST complex nested transformation
+test_post_endpoint "POST complex nested transformation" '{"input":"key1=val1;key2=val2","methods":["split:;",["map",["@split:="]],["map",["@head"]]]}' '["key1","key2"]'
+
+echo
+echo "Testing new @ syntax for map:"
+
+# Test 18: Map with property (string shorthand)
+test_post_endpoint "POST map property shorthand" '{"input":[{"name":"Alice","age":30},{"name":"Bob","age":25}],"methods":["map:name"]}' '["Alice","Bob"]'
+
+# Test 19: Map with function using @ syntax
+test_post_endpoint "POST map function with @" '{"input":["hello","world"],"methods":["map:@upperCase"]}' '["HELLO","WORLD"]'
+
+# Test 20: Map with nested path
+test_post_endpoint "POST map nested property" '{"input":[{"user":{"name":"Alice"}},{"user":{"name":"Bob"}}],"methods":["map:user.name"]}' '["Alice","Bob"]'
+
+# Test 21: Map with array of transformations
+test_post_endpoint "POST map with transformation chain" '{"input":"user_name|john;user_email|test","methods":["split:;",["map",["@split:|","@head","@replace:user_:","@upperCase"]]]}' '["NAME","EMAIL"]'
+
+# Test 22: Test renameKey with map
+test_post_endpoint "POST map with renameKey" '{"input":[{"content":"Hello","id":1},{"content":"World","id":2}],"methods":[["map",["@renameKey:content:text"]]]}' '[{"id":1,"text":"Hello"},{"id":2,"text":"World"}]'
 
 echo
 echo "===================================="

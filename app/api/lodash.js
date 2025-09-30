@@ -22,6 +22,11 @@ _.mixin({
       return String(a).localeCompare(String(b));
     });
   },
+  renameKey: function(obj, oldKey, newKey) {
+    if (!obj || typeof obj !== 'object') return obj;
+    const {[oldKey]: value, ...rest} = obj;
+    return {...rest, [newKey]: value};
+  },
 });
 
 // Export the extended Lodash instance
