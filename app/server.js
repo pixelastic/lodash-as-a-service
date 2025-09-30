@@ -12,12 +12,12 @@ setup(app);
 
 // Main routing logic
 app.use((req, res) => {
-  // If root path, serve documentation
-  if (req.path === "/") {
+  // If root path GET request, serve documentation
+  if (req.path === "/" && req.method === "GET") {
     return handleDocs(req, res);
   }
 
-  // Otherwise, handle as API transformation
+  // Otherwise, handle as API transformation (GET with path or POST)
   handleApi(req, res);
 });
 
@@ -25,4 +25,3 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`Lodash as a Service running on port ${PORT}`);
 });
-

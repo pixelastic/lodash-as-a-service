@@ -47,6 +47,9 @@ export const ALLOWED_METHODS = [
   "difference",
   "drop",
   "dropRight",
+  "filter",
+  "find",
+  "flatMap",
   "flatten",
   "flattenDeep",
   "head",
@@ -54,6 +57,7 @@ export const ALLOWED_METHODS = [
   "intersection",
   "join",
   "last",
+  "map",
   "reverse",
   "shuffle",
   "sort",
@@ -68,6 +72,7 @@ export const ALLOWED_METHODS = [
   "without",
 
   // Utility methods
+  "get",
   "identity",
   "noop",
   "range",

@@ -1,59 +1,70 @@
 import _ from "./lodash.js";
 import { LODASH_ROOT, ALLOWED_METHODS } from "./config.js";
 
-// Main transformation logic
-export function transform(path) {
-  const { input, methods } = parseAndValidateRequest(path);
+// Parse request into common format
+function parseRequest(input, methodStrings) {
+  // Convert _ to LODASH_ROOT
+  const parsedInput = input === "_" ? LODASH_ROOT : input;
+  
+  // Parse and validate methods
+  const methods = _.map(methodStrings, (methodString) => {
+    const parts = _.split(methodString, ":");
+    
+    // Method name
+    const name = _.head(parts);
+    if (!_.includes(ALLOWED_METHODS, name)) {
+      throw new Error(`Method '${name}' is not allowed`);
+    }
+    
+    // Args - decode and convert numbers
+    const args = _.chain(parts)
+      .slice(1)
+      .map(decodeURIComponent)
+      .map(arg => {
+        const num = Number(arg);
+        return !isNaN(num) && arg.trim() !== "" ? num : arg;
+      })
+      .value();
+    
+    return { name, args };
+  });
+  
+  return { input: parsedInput, methods };
+}
 
+// Execute transformation with parsed input and methods
+function executeTransformation(input, methods) {
   // If no input or methods, return null (will show documentation)
   if (_.isNull(input) || _.isEmpty(methods)) {
     return null;
   }
 
   // Check if this is a generator method request (input is LODASH_ROOT)
-  const result =
-    input === LODASH_ROOT
-      ? startWithGenerator(methods)
-      : applyOnString(input, methods);
-
-  return result;
+  return input === LODASH_ROOT 
+    ? startWithGenerator(methods)
+    : applyOnString(input, methods);
 }
 
-// Parse and validate URL request - returns validated input and methods or throws error
-// Syntax: /{input}/{method1:arg1:arg2}/{method2}/... or /_/generator:arg1:arg2/...
-export function parseAndValidateRequest(path) {
+// Main transformation logic for GET requests
+export function transform(path) {
   const segments = _.chain(path).trimStart("/").split("/").compact().value();
 
   if (_.isEmpty(segments)) {
-    return { input: null, methods: [] };
+    return null;
   }
 
-  // First segment is the input (URL-encoded)
-  const firstSegment = decodeURIComponent(segments[0]);
+  // First segment is input, rest are methods
+  const input = decodeURIComponent(segments[0]);
+  const methodStrings = _.slice(segments, 1);
+  
+  const { input: parsedInput, methods } = parseRequest(input, methodStrings);
+  return executeTransformation(parsedInput, methods);
+}
 
-  // Special case: _ means use lodash root for generator methods
-  const input = firstSegment === "_" ? LODASH_ROOT : firstSegment;
-
-  // Remaining segments are methods with optional arguments
-  const methods = _.chain(segments)
-    .slice(1)
-    .map((segment) => {
-      const parts = _.split(segment, ":");
-
-      // Method
-      const name = _.head(parts);
-      if (!_.includes(ALLOWED_METHODS, name)) {
-        throw new Error(`Method '${name}' is not allowed`);
-      }
-
-      // Args
-      const args = _.chain(parts).slice(1).map(decodeURIComponent).value();
-
-      return { name, args };
-    })
-    .value();
-
-  return { input, methods };
+// Process a JSON chain request for POST
+export function processChainRequest(value, chain) {
+  const { input, methods } = parseRequest(value, chain);
+  return executeTransformation(input, methods);
 }
 
 // Apply generator method (like range) then chain remaining methods
