@@ -72,78 +72,99 @@ echo
 echo "Running Lodash as a Service tests..."
 echo "===================================="
 
-# Test 1: Simple camelCase (main use case)
+# Test GET 1: Simple camelCase (main use case)
 test_get_endpoint "Simple camelCase" "/hello_world/camelCase" "helloWorld"
 
-# Test 2: Chain with replace
+# Test GET 2: Chain with replace
 test_get_endpoint "Replace then camelCase" "/user_first_name/replace:_:%20/camelCase" "userFirstName"
 
-# Test 3: Spaces handling
+# Test GET 3: Spaces handling
 test_get_endpoint "Spaces with trim and camelCase" "/hello%20world/trim/camelCase/upperFirst" "HelloWorld"
 
-# Test 4: String manipulation with arguments (using take instead of slice)
+# Test GET 4: String manipulation with arguments (using take instead of slice)
 test_get_endpoint "PadStart then take" "/hello/padStart:10:*/split:/take:8/join:" "*****hel"
 
-# Test 5: Array operations via split
+# Test GET 5: Array operations via split
 test_get_endpoint "Array operations" "/1,2,null,3,,4/split:,/compact/join:," "1,2,null,3,4"
 
-# Test 6: Complex transformation
+# Test GET 6: Complex transformation
 test_get_endpoint "Complex string transformation" "/user%20email%20address/replace:%20:_/camelCase" "userEmailAddress"
 
-# Test 7: Text cleaning using replaceAll
+# Test GET 7: Text cleaning using replaceAll
 test_get_endpoint "Text cleaning with replaceAll" "/%20%20%20messy%20text%20%20%20/trim/replaceAll:%20:-/toUpper" "MESSY-TEXT"
 
-# Test 8: Simple methods without args
+# Test GET 8: Simple methods without args
 test_get_endpoint "Simple uppercase" "/hello/upperCase" "HELLO"
 
-# Test 9: kebabCase
+# Test GET 9: kebabCase
 test_get_endpoint "KebabCase transformation" "/HelloWorld/kebabCase" "hello-world"
 
-# Test 10: Multiple replacements using replaceAll
+# Test GET 10: Multiple replacements using replaceAll
 test_get_endpoint "Multiple replacements with replaceAll" "/hello_world_test/replaceAll:_:%20/replaceAll:%20:-/toUpper" "HELLO-WORLD-TEST"
 
-# Test 11: Sort an array
+# Test GET 11: Sort an array
 test_get_endpoint "Sort an array" "/1,2,5,3,,4/split:,/compact/sort/join:," "1,2,3,4,5"
 
-# Test 12: Range from 12 to 20, then slice to get a subset
+# Test GET 12: Range from 12 to 20, then slice to get a subset
 test_get_endpoint "Range 12-20 then slice 2-5" "/_/range:12:21/slice:2:5/join:," "14,15,16"
+
+# Test GET 13: Map with @ function
+test_get_endpoint "GET map with @ function" "/hello,world/split:,/map:@upperCase/join:," "HELLO,WORLD"
+
+# Test GET 14: SortBy with property  
+test_get_endpoint "GET sortBy with property" "/30,20,25/split:,/sortBy:@parseInt/join:," "20,25,30"
 
 # POST Tests
 echo
 echo "Testing POST endpoints:"
 
-# Test 13: Simple POST camelCase
+# Test POST 1: Simple POST camelCase
 test_post_endpoint "POST camelCase" '{"input":"hello_world","methods":["camelCase"]}' '"helloWorld"'
 
-# Test 14: POST with chain
+# Test POST 2: POST with chain
 test_post_endpoint "POST replace then camelCase" '{"input":"user_first_name","methods":["replace:_: ","camelCase"]}' '"userFirstName"'
 
-# Test 15: POST range and slice
+# Test POST 3: POST range and slice
 test_post_endpoint "POST range and slice" '{"input":"_","methods":["range:12:21","slice:2:5","join:,"]}' '"14,15,16"'
 
-# Test 16: POST nested arrays with map
+# Test POST 4: POST nested arrays with map
 test_post_endpoint "POST nested arrays with map" '{"input":"hello,world","methods":["split:,",["map",["@upperCase"]]]}' '["HELLO","WORLD"]'
 
-# Test 17: POST complex nested transformation
+# Test POST 5: POST complex nested transformation
 test_post_endpoint "POST complex nested transformation" '{"input":"key1=val1;key2=val2","methods":["split:;",["map",["@split:="]],["map",["@head"]]]}' '["key1","key2"]'
 
 echo
 echo "Testing new @ syntax for map:"
 
-# Test 18: Map with property (string shorthand)
+# Test POST 6: Map with property (string shorthand)
 test_post_endpoint "POST map property shorthand" '{"input":[{"name":"Alice","age":30},{"name":"Bob","age":25}],"methods":["map:name"]}' '["Alice","Bob"]'
 
-# Test 19: Map with function using @ syntax
+# Test POST 7: Map with function using @ syntax
 test_post_endpoint "POST map function with @" '{"input":["hello","world"],"methods":["map:@upperCase"]}' '["HELLO","WORLD"]'
 
-# Test 20: Map with nested path
+# Test POST 8: Map with nested path
 test_post_endpoint "POST map nested property" '{"input":[{"user":{"name":"Alice"}},{"user":{"name":"Bob"}}],"methods":["map:user.name"]}' '["Alice","Bob"]'
 
-# Test 21: Map with array of transformations
+# Test POST 9: Map with array of transformations
 test_post_endpoint "POST map with transformation chain" '{"input":"user_name|john;user_email|test","methods":["split:;",["map",["@split:|","@head","@replace:user_:","@upperCase"]]]}' '["NAME","EMAIL"]'
 
-# Test 22: Test renameKey with map
+# Test POST 10: Test renameKey with map
 test_post_endpoint "POST map with renameKey" '{"input":[{"content":"Hello","id":1},{"content":"World","id":2}],"methods":[["map",["@renameKey:content:text"]]]}' '[{"id":1,"text":"Hello"},{"id":2,"text":"World"}]'
+
+echo
+echo "Testing new chain methods:"
+
+# Test POST 11: Filter with function
+test_post_endpoint "POST filter with function" '{"input":["apple","banana","avocado","cherry"],"methods":[["filter",["@startsWith:a"]]]}' '["apple","avocado"]'
+
+# Test POST 12: Find with property
+test_post_endpoint "POST find with property" '{"input":[{"name":"Bob","age":25},{"name":"Alice","age":30}],"methods":[["find",{"name":"Alice"}]]}' '{"name":"Alice","age":30}'
+
+# Test POST 13: SortBy with property
+test_post_endpoint "POST sortBy with property" '{"input":[{"age":30},{"age":20},{"age":25}],"methods":["sortBy:age"]}' '[{"age":20},{"age":25},{"age":30}]'
+
+# Test POST 14: GroupBy with property
+test_post_endpoint "POST groupBy with property" '{"input":["a","bb","cc","d"],"methods":["groupBy:length"]}' '{"1":["a","d"],"2":["bb","cc"]}'
 
 echo
 echo "===================================="

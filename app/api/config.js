@@ -3,15 +3,8 @@
 // Special constant for generator methods (when using _ as input)
 export const LODASH_ROOT = Symbol("lodash-root");
 
-// Methods that accept transformation chains as arrays
-export const CHAIN_METHODS = [
-  "map",
-  "filter",
-  // Add other methods here as needed (reduce, etc.)
-];
-
-// Whitelist of allowed Lodash methods
-export const ALLOWED_METHODS = [
+// Methods that only accept simple arguments
+export const SIMPLE_METHODS = [
   // String methods
   "camelCase",
   "capitalize",
@@ -54,8 +47,6 @@ export const ALLOWED_METHODS = [
   "difference",
   "drop",
   "dropRight",
-  "filter",
-  "find",
   "flatMap",
   "flatten",
   "flattenDeep",
@@ -64,7 +55,6 @@ export const ALLOWED_METHODS = [
   "intersection",
   "join",
   "last",
-  "map",
   "reverse",
   "shuffle",
   "sort",
@@ -93,3 +83,15 @@ export const ALLOWED_METHODS = [
   "toPath",
   "uniqueId",
 ];
+
+// Methods that accept transformation chains as arrays
+export const CHAIN_METHODS = [
+  "map",
+  "filter",
+  "find",
+  "sortBy", 
+  "groupBy"
+];
+
+// All allowed methods (combination of simple and chain methods)
+export const ALLOWED_METHODS = [...SIMPLE_METHODS, ...CHAIN_METHODS];
