@@ -38,6 +38,62 @@ I built this out of the need for simple text formatting in no-code workflows.
 - Colon    →  %3A
 - Slash    →  %2F
 
+## POST API
+
+You can also send JSON data via POST for more complex transformations:
+
+```bash
+curl -X POST https://lodash-as-a-service.fly.dev/ \
+  -H "Content-Type: application/json" \
+  -d '{"input": "hello_world", "methods": ["camelCase"]}'
+```
+
+### Simple Transformations
+
+Same as GET requests but with JSON:
+```json
+{"input": "hello_world", "methods": ["camelCase"]}
+// Result: "helloWorld"
+```
+
+### Property Extraction
+
+Use shorthand for object property access:
+```json
+{"input": [{"name": "Alice"}, {"name": "Bob"}], "methods": ["map:name"]}
+// Result: ["Alice", "Bob"]
+```
+
+### Function Application with @ Syntax
+
+Use `@` prefix to apply Lodash functions:
+```json
+{"input": ["hello", "world"], "methods": ["map:@upperCase"]}
+// Result: ["HELLO", "WORLD"]
+```
+
+### Complex Transformation Chains
+
+Use arrays for multi-step transformations on each item:
+```json
+{
+  "input": "user_name|john;user_email|test",
+  "methods": [
+    "split:;",
+    ["map", ["@split:|", "@head", "@replace:user_:", "@upperCase"]]
+  ]
+}
+// Result: ["NAME", "EMAIL"]
+```
+
+### Function with Arguments
+
+Pass arguments using colon syntax:
+```json
+{"input": [{"content": "Hello"}], "methods": [["map", ["@renameKey:content:text"]]]}
+// Result: [{"text": "Hello"}]
+```
+
 ## Available Methods
 
 ### String Methods
@@ -60,8 +116,11 @@ I built this out of the need for simple text formatting in no-code workflows.
 - `sortNumeric` sorts numbers correctly (1, 2, 10 vs 1, 10, 2)
 
 ### Utility Methods
-`identity`, `noop`, `stubArray`, `stubFalse`, `stubObject`, `stubString`, `stubTrue`,
+`get`, `identity`, `noop`, `range`, `renameKey`, `stubArray`, `stubFalse`, `stubObject`, `stubString`, `stubTrue`,
 `times`, `toPath`, `uniqueId`
+
+**New methods:**
+- `renameKey(oldKey, newKey)` renames an object property from oldKey to newKey
 
 ## Credits
 
