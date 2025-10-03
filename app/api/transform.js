@@ -132,9 +132,8 @@ export function applyOnString(input, methods) {
       if (_.isArray(arg)) {
         // Check if current method supports transformation chains
         if (!_.includes(CHAIN_METHODS, name)) {
-          // Single nested method for non-chain methods
-          const nestedMethod = parseMethod(arg);
-          return (item) => _[nestedMethod.name](item, ...nestedMethod.args);
+          // For non-chain methods, keep arrays as literal arguments
+          return arg;
         }
         
         // For chain methods like map: create a composed function

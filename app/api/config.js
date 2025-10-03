@@ -67,6 +67,7 @@ export const SIMPLE_METHODS = [
   "uniq",
   "uniqBy",
   "without",
+  "zipObject",
 
   // Utility methods
   "get",
